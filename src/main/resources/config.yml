@@ -1,0 +1,98 @@
+# RedirectMe Configuration
+# Author: lazizbekdev
+# Plugin: RedirectMe - Automatic player redirection before server shutdown
+
+# ============================================
+# TARGET SERVER CONFIGURATION
+# ============================================
+# The BungeeCord/Waterfall server name to redirect players to
+# This must match the server name in your BungeeCord config.yml
+target-server: "lobby"
+
+# ============================================
+# TIMING CONFIGURATION
+# ============================================
+# Delay in ticks before executing the actual shutdown command
+# 20 ticks = 1 second. Recommended: 40 ticks (2 seconds)
+# This allows time for BungeeCord to transfer players before shutdown
+redirect-delay-ticks: 40
+
+# ============================================
+# COMMAND INTERCEPTION
+# ============================================
+# List of commands to intercept (without the leading slash)
+# When any of these commands are executed, players will be redirected first
+# Case-insensitive matching
+intercept-commands:
+  - "stop"
+  - "restart"
+  - "rl"
+  - "reload"
+  - "shutdown"
+
+# ============================================
+# MESSAGES CONFIGURATION
+# ============================================
+# Supports color codes (&c, &a, &e, etc.) and hex colors (&#RRGGBB)
+
+messages:
+  # Message shown when player doesn't have permission
+  no-permission: "&cYou don't have permission to use this command!"
+  
+  # Message shown when reload is successful
+  reload-success: "&aRedirectMe configuration reloaded successfully!"
+  
+  # Kick message when redirect fails
+  kick-message: "&cServer is currently restarting. Please reconnect in a few seconds."
+
+# ============================================
+# SOUND EFFECTS CONFIGURATION
+# ============================================
+# Play sound when redirect starts (no visual messages)
+
+effects:
+  # Play sound when redirect starts
+  sound-enabled: true
+  # Sound type: BLOCK_NOTE_BLOCK_PLING, ENTITY_PLAYER_LEVELUP, etc.
+  sound-type: "BLOCK_NOTE_BLOCK_PLING"
+  # Sound volume (0.0 - 1.0)
+  sound-volume: 1.0
+  # Sound pitch (0.5 - 2.0)
+  sound-pitch: 1.5
+
+# ============================================
+# PERMISSIONS CONFIGURATION
+# ============================================
+permissions:
+  # Permission required to bypass redirection (for admins)
+  bypass: "redirectme.bypass"
+  
+  # Permission required to use admin commands
+  admin: "redirectme.admin"
+  
+  # Permission required to use reload command
+  reload: "redirectme.reload"
+
+# ============================================
+# LOGGING CONFIGURATION
+# ============================================
+# Log settings for redirect events
+
+logging:
+  # Enable logging to files in logs/ folder
+  enabled: true
+  # Log redirect events to console
+  console: true
+  # Send log messages to BungeeCord proxy console
+  bungee-console: true
+
+# ============================================
+# ADVANCED SETTINGS
+# ============================================
+# Don't modify unless you know what you're doing
+
+# Enable debug messages in console
+debug: false
+
+# Kick players if BungeeCord redirect fails
+kick-on-fail: true

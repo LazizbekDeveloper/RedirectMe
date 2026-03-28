@@ -1,0 +1,49 @@
+# RedirectMe Plugin Configuration
+# Author: lazizbekdev
+
+name: RedirectMe
+version: '${project.version}'
+main: com.lazizbekdev.redirectme.RedirectMe
+api-version: '1.20'
+description: Automatically redirect players to fallback server before shutdown
+author: lazizbekdev
+website: https://github.com/lazizbekdev
+
+# Load this plugin before any server management plugins
+load: STARTUP
+
+# Soft dependencies - won't error if missing
+softdepend:
+  - Vault
+  - PlaceholderAPI
+
+# Commands registered by this plugin
+commands:
+  redirectme:
+    description: Main RedirectMe command
+    usage: /<command> [reload|help]
+    aliases: [rdm, redirect]
+    permission: redirectme.admin
+
+  rdmreload:
+    description: Reload RedirectMe configuration
+    usage: /<command>
+    aliases: [redirectmereload]
+    permission: redirectme.reload
+
+# Permissions used by this plugin
+permissions:
+  redirectme.admin:
+    description: Full access to RedirectMe admin commands
+    default: op
+    children:
+      redirectme.reload: true
+      redirectme.bypass: true
+
+  redirectme.reload:
+    description: Allows reloading the plugin configuration
+    default: op
+
+  redirectme.bypass:
+    description: Bypasses redirection when shutdown commands are used
+    default: op
