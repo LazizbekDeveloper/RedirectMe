@@ -83,7 +83,6 @@ logging:
 |------------|---------|-------------|
 | `redirectme.admin` | OP | Full admin access |
 | `redirectme.reload` | OP | Reload configuration |
-| `redirectme.bypass` | OP | Bypass redirection |
 
 ## Logging
 

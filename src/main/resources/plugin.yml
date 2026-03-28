@@ -38,12 +38,7 @@ permissions:
     default: op
     children:
       redirectme.reload: true
-      redirectme.bypass: true
 
   redirectme.reload:
     description: Allows reloading the plugin configuration
-    default: op
-
-  redirectme.bypass:
-    description: Bypasses redirection when shutdown commands are used
     default: op

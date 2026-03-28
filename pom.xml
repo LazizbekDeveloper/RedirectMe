@@ -6,7 +6,7 @@
 
     <groupId>com.lazizbekdev</groupId>
     <artifactId>RedirectMe</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <packaging>jar</packaging>
 
     <name>RedirectMe</name>

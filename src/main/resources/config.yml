@@ -64,9 +64,6 @@ effects:
 # PERMISSIONS CONFIGURATION
 # ============================================
 permissions:
-  # Permission required to bypass redirection (for admins)
-  bypass: "redirectme.bypass"
-  
   # Permission required to use admin commands
   admin: "redirectme.admin"
   

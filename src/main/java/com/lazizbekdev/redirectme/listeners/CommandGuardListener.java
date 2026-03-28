@@ -50,14 +50,6 @@ public class CommandGuardListener implements Listener {
             return;
         }
 
-        // Check for bypass permission
-        if (player.hasPermission("redirectme.bypass")) {
-            if (plugin.getConfig().getBoolean("debug", false)) {
-                plugin.getLogger().info("Player " + player.getName() + " bypassed redirect.");
-            }
-            return;
-        }
-
         // Check for admin permission
         if (!player.hasPermission("redirectme.admin")) {
             // Player doesn't have permission - show error and cancel
