@@ -1,7 +1,7 @@
 # RedirectMe
 
 **Author:** lazizbekdev  
-**Version:** 1.0.0  
+**Version:** 1.0.1
 **Platform:** Spigot/Paper 1.20+
 
 A Minecraft Spigot plugin that automatically redirects all players to a fallback server (e.g., Lobby) before the current server shuts down, restarts, or crashes.
