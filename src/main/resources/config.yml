@@ -34,6 +34,7 @@ intercept-commands:
 # MESSAGES CONFIGURATION
 # ============================================
 # Supports color codes (&c, &a, &e, etc.) and hex colors (&#RRGGBB)
+# Leave empty ("") to disable a specific message
 
 messages:
   # Message shown when player doesn't have permission
@@ -45,10 +46,19 @@ messages:
   # Kick message when redirect fails
   kick-message: "&cServer is currently restarting. Please reconnect in a few seconds."
 
+  # Chat message sent to player when being redirected
+  redirect-chat: "&aServer is restarting! Redirecting you to the fallback server..."
+  
+  # Title sent to player when being redirected
+  redirect-title: "&c&lSERVER RESTART"
+  
+  # Subtitle sent to player when being redirected
+  redirect-subtitle: "&eRedirecting to fallback server..."
+
 # ============================================
 # SOUND EFFECTS CONFIGURATION
 # ============================================
-# Play sound when redirect starts (no visual messages)
+# Play sound when redirect starts
 
 effects:
   # Play sound when redirect starts
@@ -80,8 +90,6 @@ logging:
   enabled: true
   # Log redirect events to console
   console: true
-  # Send log messages to BungeeCord proxy console
-  bungee-console: true
 
 # ============================================
 # ADVANCED SETTINGS
@@ -93,3 +101,4 @@ debug: false
 
 # Kick players if BungeeCord redirect fails
 kick-on-fail: true
+

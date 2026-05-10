@@ -251,6 +251,14 @@ public class RedirectMe extends JavaPlugin {
     }
 
     /**
+     * Gets the CommandGuardListener instance.
+     * @return The CommandGuardListener
+     */
+    public CommandGuardListener getCommandGuardListener() {
+        return commandGuardListener;
+    }
+
+    /**
      * Gets the RedirectManager instance.
      * @return The RedirectManager
      */

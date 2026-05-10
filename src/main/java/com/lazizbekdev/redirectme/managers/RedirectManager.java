@@ -18,70 +18,39 @@ import java.util.logging.Level;
  * This manager is responsible for:
  * - Sending players to the target server via BungeeCord messaging
  * - Playing sound effects during redirect
+ * - Showing configurable visual messages
  * - Logging all redirect events to file and console
- * 
- * NO VISUAL MESSAGES: Only sound effect is played during redirect.
  * 
  * @author lazizbekdev
  */
 public class RedirectManager implements PluginMessageListener {
 
     private final RedirectMe plugin;
-    private final String targetServer;
     private final RedirectLogger logger;
-    
-    // Sound configuration
-    private final boolean soundEnabled;
-    private final Sound soundType;
-    private final float soundVolume;
-    private final float soundPitch;
 
     public RedirectManager(RedirectMe plugin) {
         this.plugin = plugin;
-        this.targetServer = plugin.getConfig().getString("target-server", "lobby");
         this.logger = plugin.getRedirectLogger();
-        
-        // Load sound configuration
-        this.soundEnabled = plugin.getConfig().getBoolean("effects.sound-enabled", true);
-        
-        String soundName = plugin.getConfig().getString("effects.sound-type", "BLOCK_NOTE_BLOCK_PLING");
-        Sound sound;
-        try {
-            sound = Sound.valueOf(soundName);
-        } catch (IllegalArgumentException e) {
-            plugin.getLogger().warning("Invalid sound type: " + soundName + ". Using BLOCK_NOTE_BLOCK_PLING instead.");
-            sound = Sound.BLOCK_NOTE_BLOCK_PLING;
-        }
-        this.soundType = sound;
-        this.soundVolume = (float) plugin.getConfig().getDouble("effects.sound-volume", 1.0);
-        this.soundPitch = (float) plugin.getConfig().getDouble("effects.sound-pitch", 1.5);
+    }
+
+    /**
+     * Gets the configured target server name directly from config.
+     * @return The target server name
+     */
+    public String getTargetServer() {
+        return plugin.getConfig().getString("target-server", "lobby");
     }
 
     /**
      * Starts the redirect sequence.
-     * 
-     * This method:
-     * 1. Plays a sound effect to all players
-     * 2. Redirects all players to the target server
-     * 3. Logs all redirect events
-     * 
-     * NO VISUAL MESSAGES are sent (no title, actionbar, bossbar, broadcast).
      */
     public void startRedirect() {
-        // Play sound effect if enabled
-        if (soundEnabled) {
-            playRedirectSound();
-        }
-
         // Redirect all players immediately
         redirectAllPlayers("Server shutdown/restart");
     }
 
     /**
      * Redirects all online players to the target server.
-     * 
-     * Uses BungeeCord PluginMessage channel to send the "Connect" command.
-     * All redirect events are logged to file and console.
      * 
      * @param reason The reason for the redirect
      */
@@ -95,9 +64,8 @@ public class RedirectManager implements PluginMessageListener {
             } else {
                 failedCount++;
                 
-                // Kick player if redirect fails and configured
                 if (plugin.getConfig().getBoolean("kick-on-fail", true)) {
-                    String kickMsg = plugin.colorize(plugin.getConfig().getString("kick-message",
+                    String kickMsg = plugin.colorize(plugin.getConfig().getString("messages.kick-message",
                             "&cServer is currently restarting. Please reconnect in a few seconds."));
                     player.kickPlayer(kickMsg);
                     logger.logRedirectFailure(player.getName(), "Redirect failed - kicked");
@@ -105,54 +73,36 @@ public class RedirectManager implements PluginMessageListener {
             }
         }
 
-        // Log summary to console
         plugin.getLogger().info("========================================");
         plugin.getLogger().info("  Redirect Summary");
         plugin.getLogger().info("  Total Players: " + (redirectedCount + failedCount));
         plugin.getLogger().info("  Successfully Redirected: " + redirectedCount);
         plugin.getLogger().info("  Failed: " + failedCount);
-        plugin.getLogger().info("  Target Server: " + targetServer);
+        plugin.getLogger().info("  Target Server: " + getTargetServer());
         plugin.getLogger().info("========================================");
-        
-        // Send to BungeeCord console if enabled
-        if (plugin.getConfig().getBoolean("logging.bungee-console", true)) {
-            sendToBungeeConsole("[RedirectMe] Redirected " + redirectedCount + " players to " + targetServer);
-        }
     }
 
     /**
      * Sends a single player to the lobby/target server.
-     * 
-     * This method uses the BungeeCord PluginMessage channel to send
-     * a "Connect" command to BungeeCord, which then transfers the player.
-     * 
-     * GHOST CONNECTIONS PREVENTION:
-     * - We send the message synchronously on the main thread
-     * - We don't close the connection immediately after sending
-     * - The server shutdown is delayed to allow BungeeCord to process
      * 
      * @param player The player to redirect
      * @param reason The reason for redirect (for logging)
      * @return true if the redirect message was sent successfully
      */
     public boolean sendToLobby(Player player, String reason) {
+        playRedirectSound(player);
+        sendVisualMessages(player);
+
         try {
-            // Create the PluginMessage payload
-            // Format: [Command: String][Target Server: String]
             ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
             DataOutputStream out = new DataOutputStream(byteArray);
             
-            // Write the "Connect" command
             out.writeUTF("Connect");
-            // Write the target server name
-            out.writeUTF(targetServer);
+            out.writeUTF(getTargetServer());
             
-            // Send the plugin message to the player
-            // BungeeCord intercepts this and handles the transfer
             player.sendPluginMessage(plugin, RedirectMe.BUNGEE_CHANNEL, byteArray.toByteArray());
             
-            // Log the redirect
-            logger.logRedirect(player.getName(), targetServer, reason);
+            logger.logRedirect(player.getName(), getTargetServer(), reason);
             
             return true;
             
@@ -164,61 +114,53 @@ public class RedirectManager implements PluginMessageListener {
     }
 
     /**
-     * Plays the redirect sound effect to all players.
+     * Plays the redirect sound effect to a specific player.
      */
-    private void playRedirectSound() {
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            player.playSound(player.getLocation(), soundType, soundVolume, soundPitch);
-        }
+    private void playRedirectSound(Player player) {
+        if (!plugin.getConfig().getBoolean("effects.sound-enabled", true)) return;
 
-        plugin.getLogger().info("Played redirect sound: " + soundType.name());
-    }
-
-    /**
-     * Sends a message to the BungeeCord proxy console.
-     * 
-     * @param message The message to send
-     */
-    private void sendToBungeeConsole(String message) {
+        String soundName = plugin.getConfig().getString("effects.sound-type", "BLOCK_NOTE_BLOCK_PLING");
+        Sound sound;
         try {
-            ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
-            DataOutputStream out = new DataOutputStream(byteArray);
-            
-            out.writeUTF("Message");
-            out.writeUTF("CONSOLE");
-            out.writeUTF(message);
-            
-            // Send to first online player (BungeeCord will route to proxy)
-            Player[] players = Bukkit.getOnlinePlayers().toArray(new Player[0]);
-            if (players.length > 0) {
-                players[0].sendPluginMessage(plugin, RedirectMe.BUNGEE_CHANNEL, byteArray.toByteArray());
-            }
-            
-        } catch (IOException e) {
-            if (plugin.getConfig().getBoolean("debug", false)) {
-                plugin.getLogger().log(Level.WARNING, "Failed to send message to BungeeCord console", e);
-            }
+            sound = Sound.valueOf(soundName);
+        } catch (IllegalArgumentException e) {
+            sound = Sound.BLOCK_NOTE_BLOCK_PLING;
         }
+
+        float volume = (float) plugin.getConfig().getDouble("effects.sound-volume", 1.0);
+        float pitch = (float) plugin.getConfig().getDouble("effects.sound-pitch", 1.5);
+
+        player.playSound(player.getLocation(), sound, volume, pitch);
     }
 
     /**
-     * Handles incoming plugin messages (not used for outgoing BungeeCord messages,
-     * but required for the PluginMessageListener interface).
+     * Sends configured visual messages (chat, title) to the player.
      */
+    private void sendVisualMessages(Player player) {
+        String chatMsg = plugin.getConfig().getString("messages.redirect-chat", "");
+        if (chatMsg != null && !chatMsg.isEmpty()) {
+            player.sendMessage(plugin.colorize(chatMsg));
+        }
+
+        String titleMsg = plugin.getConfig().getString("messages.redirect-title", "");
+        String subtitleMsg = plugin.getConfig().getString("messages.redirect-subtitle", "");
+        
+        boolean hasTitle = titleMsg != null && !titleMsg.isEmpty();
+        boolean hasSubtitle = subtitleMsg != null && !subtitleMsg.isEmpty();
+
+        if (hasTitle || hasSubtitle) {
+            player.sendTitle(
+                hasTitle ? plugin.colorize(titleMsg) : "",
+                hasSubtitle ? plugin.colorize(subtitleMsg) : "",
+                10, 70, 20
+            );
+        }
+    }
+
     @Override
     public void onPluginMessageReceived(String channel, Player player, byte[] message) {
-        // This is for incoming messages from BungeeCord
-        // Currently not used
         if (plugin.getConfig().getBoolean("debug", false)) {
             plugin.getLogger().info("Received plugin message on channel: " + channel);
         }
-    }
-
-    /**
-     * Gets the configured target server name.
-     * @return The target server name
-     */
-    public String getTargetServer() {
-        return targetServer;
     }
 }
